@@ -1,0 +1,5 @@
+googletest/
+bin/*
+!bin/.gitkeep
+obj/*
+!obj/.gitkeep
