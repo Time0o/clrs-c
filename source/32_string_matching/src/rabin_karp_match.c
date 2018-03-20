@@ -3,8 +3,8 @@
 #include "string_matching.h"
 
 /* a prime such that 256*Q is significantly smaller than the least possible
-   maximum values an unsigned long can take on. */
-#define Q 65413
+   maximum values a long can take on. */
+#define Q 251
 
 size_t rabin_karp_match(char const *text, char const *comp)
 {
@@ -14,9 +14,9 @@ size_t rabin_karp_match(char const *text, char const *comp)
     static size_t comp_len = 0u;
     static size_t shift = 0u;
 
-    static unsigned long msd = 1u;
-    static unsigned long text_val = 0u;
-    static unsigned long comp_val = 0u;
+    static long msd = 1;
+    static long text_val = 0;
+    static long comp_val = 0;
 
     if (!comp) {
         init = 1;
@@ -30,9 +30,9 @@ size_t rabin_karp_match(char const *text, char const *comp)
 
         comp_len = strlen(comp);
 
-        msd = 1u;
-        text_val = 0u;
-        comp_val = 0u;
+        msd = 1;
+        text_val = 0;
+        comp_val = 0;
         for (size_t i = 0u; i < comp_len; ++i) {
             if (i != comp_len - 1)
                 msd = (msd << 8) % Q;
@@ -53,6 +53,8 @@ size_t rabin_karp_match(char const *text, char const *comp)
         if (shift != end_of_text - comp_len) {
             text_val = (((text_val - text[shift] * msd) << 8) +
                         text[shift + comp_len]) % Q;
+            if (text_val < 0)
+                text_val += Q;
         }
 
         ++shift;
