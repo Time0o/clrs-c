@@ -2,5 +2,6 @@
 #define STRING_MATCHING_H
 
 size_t naive_string_match(char const *text, char const *comp);
+size_t rabin_karp_match(char const *text, char const *comp);
 
 #endif
