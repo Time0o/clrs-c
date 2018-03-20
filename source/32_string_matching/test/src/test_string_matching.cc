@@ -54,4 +54,8 @@ TEST(StringMatchingTest, RabinKarpMatch) {
     test_string_match(rabin_karp_match);
 }
 
+TEST(StringMatchingTest, DFAMatch) {
+    test_string_match(dfa_match);
+}
+
 }
