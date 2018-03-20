@@ -44,4 +44,27 @@ TEST(StringMatchingTest, NaiveStringMatch) {
     }
 }
 
+TEST(StringMatchingTest, RabinKarpMatch) {
+    for (auto const &test_input : test_inputs) {
+        char const *text = std::get<0>(test_input);
+        char const *comp = std::get<1>(test_input);
+
+        std::vector<size_t> expected = std::get<2>(test_input);
+        std::vector<size_t> result;
+
+        size_t end_of_text = rabin_karp_match(text, nullptr);
+
+        size_t offs;
+        for (;;) {
+            offs = rabin_karp_match(text, comp);
+            if (offs == end_of_text)
+                break;
+
+            result.push_back(offs);
+        }
+
+        EXPECT_EQ(expected, result);
+    }
+}
+
 }
