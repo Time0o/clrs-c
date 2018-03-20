@@ -21,7 +21,8 @@ static std::vector<
     std::make_tuple("abc", "ba", std::vector<size_t>({}))
 };
 
-TEST(StringMatchingTest, NaiveStringMatch) {
+static void test_string_match(size_t (*match)(char const *, char const *))
+{
     for (auto const &test_input : test_inputs) {
         char const *text = std::get<0>(test_input);
         char const *comp = std::get<1>(test_input);
@@ -29,42 +30,28 @@ TEST(StringMatchingTest, NaiveStringMatch) {
         std::vector<size_t> expected = std::get<2>(test_input);
         std::vector<size_t> result;
 
-        size_t end_of_text = naive_string_match(text, nullptr);
+        size_t end_of_text = match(text, nullptr);
 
         size_t offs;
-        for (;;) {
-            offs = naive_string_match(text, comp);
+        for (size_t i = 0u; i < expected.size(); ++i) {
+            offs = match(text, comp);
             if (offs == end_of_text)
                 break;
 
             result.push_back(offs);
         }
 
-        EXPECT_EQ(expected, result);
+        EXPECT_EQ(expected, result)
+            << "string matching algorithm produces correct output";
     }
 }
 
+TEST(StringMatchingTest, NaiveStringMatch) {
+    test_string_match(naive_string_match);
+}
+
 TEST(StringMatchingTest, RabinKarpMatch) {
-    for (auto const &test_input : test_inputs) {
-        char const *text = std::get<0>(test_input);
-        char const *comp = std::get<1>(test_input);
-
-        std::vector<size_t> expected = std::get<2>(test_input);
-        std::vector<size_t> result;
-
-        size_t end_of_text = rabin_karp_match(text, nullptr);
-
-        size_t offs;
-        for (;;) {
-            offs = rabin_karp_match(text, comp);
-            if (offs == end_of_text)
-                break;
-
-            result.push_back(offs);
-        }
-
-        EXPECT_EQ(expected, result);
-    }
+    test_string_match(rabin_karp_match);
 }
 
 }
