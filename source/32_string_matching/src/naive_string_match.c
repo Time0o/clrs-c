@@ -4,8 +4,8 @@
 
 size_t naive_string_match(char const *text, char const *comp)
 {
-    static size_t curr_offs;
-    static size_t end_of_text;
+    static size_t curr_offs = 0u;
+    static size_t end_of_text = 0u;
 
     if (!comp) {
         curr_offs = 0u;
