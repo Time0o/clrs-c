@@ -58,4 +58,8 @@ TEST(StringMatchingTest, DFAMatch) {
     test_string_match(dfa_match);
 }
 
+TEST(StringMatchingTest, KMPMatch) {
+    test_string_match(kmp_match);
+}
+
 }
