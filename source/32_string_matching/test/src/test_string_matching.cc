@@ -35,11 +35,12 @@ static void test_string_match(size_t (*match)(char const *, char const *))
         size_t offs;
         for (size_t i = 0u; i < expected.size(); ++i) {
             offs = match(text, comp);
-            if (offs == end_of_text)
-                break;
 
             result.push_back(offs);
         }
+
+        EXPECT_EQ(end_of_text, match(text, comp))
+            << "string matching algorithm returns end of text after all matches have been found";
 
         EXPECT_EQ(expected, result)
             << "string matching algorithm produces correct output";
