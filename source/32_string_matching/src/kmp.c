@@ -20,7 +20,7 @@ static size_t * compute_prefixes(char const *pattern, size_t pattern_len)
     return prefixes;
 }
 
-size_t kmp_match(char const *text, char const *pattern)
+size_t string_match_kmp(char const *text, char const *pattern)
 {
     static int init = 0;
 

@@ -6,7 +6,7 @@
    maximum values a long can take on. */
 #define Q 251
 
-size_t rabin_karp_match(char const *text, char const *comp)
+size_t string_match_rabin_karp(char const *text, char const *comp)
 {
     static int init = 0;
 

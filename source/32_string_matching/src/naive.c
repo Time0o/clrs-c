@@ -2,7 +2,7 @@
 
 #include "string_matching.h"
 
-size_t naive_string_match(char const *text, char const *comp)
+size_t string_match_naive(char const *text, char const *comp)
 {
     static size_t curr_offs = 0u;
     static size_t end_of_text = 0u;

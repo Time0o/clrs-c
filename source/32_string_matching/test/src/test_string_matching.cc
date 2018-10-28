@@ -48,19 +48,19 @@ static void test_string_match(size_t (*match)(char const *, char const *))
 }
 
 TEST(StringMatchingTest, NaiveStringMatch) {
-    test_string_match(naive_string_match);
+    test_string_match(string_match_naive);
 }
 
 TEST(StringMatchingTest, RabinKarpMatch) {
-    test_string_match(rabin_karp_match);
+    test_string_match(string_match_rabin_karp);
 }
 
 TEST(StringMatchingTest, DFAMatch) {
-    test_string_match(dfa_match);
+    test_string_match(string_match_dfa);
 }
 
 TEST(StringMatchingTest, KMPMatch) {
-    test_string_match(kmp_match);
+    test_string_match(string_match_kmp);
 }
 
 }

@@ -106,7 +106,7 @@ static struct transitions * compute_transitions(
     return delta;
 }
 
-size_t dfa_match(char const *text, char const *pattern)
+size_t string_match_dfa(char const *text, char const *pattern)
 {
     static int init = 0;
 
