@@ -89,6 +89,40 @@ INSTANTIATE_TEST_CASE_P(BinarySearchTrees, BinarySearchTreeTest, Values(
     std::vector<int>({13, 0, 0, 11, 10, 0, 0, 13, 8, 0, 5, 5, 1, 2, 4}),
     std::vector<int>({3, 15, 9, 1, 5, 14, 3, 14, 10, 15, 0, 9, 14, 14, 11})));
 
+TEST_P(BinarySearchTreeTest, CanDeleteFromTree)
+{
+    auto vect = GetParam();
+
+    for (auto it = vect.begin(); it != vect.end(); ++it) {
+        int key = *it;
+
+        auto node = bst_search(bst_root, &key, intcomp);
+        ASSERT_NE(node, nullptr)
+            << "BST node to delete found.";
+
+        bst_root = bst_delete(bst_root, node, 1, 1);
+
+        std::vector<int> remaining(it + 1, vect.end());
+        std::sort(remaining.begin(), remaining.end());
+
+        auto bst_it = bst_iter_create(bst_root);
+
+        for (auto key_remaining : remaining) {
+            ASSERT_TRUE(bst_iter_has_next(bst_it))
+                << "BST iterator has next node.";
+
+            struct bst_node *next = bst_iter_next(bst_it);
+            ASSERT_NE(next, nullptr)
+                << "BST iterator's next node is valid.";
+
+            ASSERT_EQ(*static_cast<int *>(next->key), key_remaining)
+                << "BST iterator's returns correct next nodes for reducted BST.";
+        }
+
+        bst_iter_free(bst_it);
+    }
+}
+
 TEST_P(BinarySearchTreeTest, CanSearchTree)
 {
     auto expected = GetParam();

@@ -43,6 +43,49 @@ struct bst_node * bst_insert(struct bst_node *root, void *key, void *data,
     return root;
 }
 
+struct bst_node * bst_delete(struct bst_node *root, struct bst_node *node,
+                             int free_key, int free_data)
+{
+    if (!root || !node)
+        return NULL;
+
+    struct bst_node *tmp1, *tmp2;
+
+    if (!node->left || !node->right)
+        tmp1 = node;
+    else
+        tmp1 = bst_successor(node);
+
+    tmp2 = tmp1->left ? tmp1->left : tmp1->right;
+
+    if (tmp2)
+        tmp2->parent = tmp1->parent;
+
+    if (!tmp1->parent)
+        root = tmp2;
+    else {
+        if (tmp1 == tmp1->parent->left)
+            tmp1->parent->left = tmp2;
+        else
+            tmp1->parent->right = tmp2;
+    }
+
+    if (free_key)
+        free(node->key);
+
+    if (free_data)
+        free(node->data);
+
+    if (tmp1 != node) {
+        node->key = tmp1->key;
+        node->data = tmp1->data;
+    }
+
+    free(tmp1);
+
+    return root;
+}
+
 void bst_free(struct bst_node *root, int free_keys, int free_data)
 {
     if (!root)

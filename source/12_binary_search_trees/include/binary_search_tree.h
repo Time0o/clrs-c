@@ -18,6 +18,9 @@ struct bst_node {
 struct bst_node * bst_insert(struct bst_node *root, void *key, void *data,
                              int(*comp)(void const *, void const *));
 
+struct bst_node * bst_delete(struct bst_node *root, struct bst_node *node,
+                             int free_key, int free_data);
+
 void bst_free(struct bst_node *root, int free_keys, int free_data);
 
 
