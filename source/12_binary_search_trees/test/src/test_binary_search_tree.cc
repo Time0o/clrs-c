@@ -235,7 +235,7 @@ TEST_P(BinarySearchTreeTest, CanFindTreePredSucc)
 
         if (i < expected.size() - 1u) {
             ASSERT_NE(succ, nullptr)
-                << "BST node (key " << key << ") successor with different exists.";
+                << "BST node (key " << key << ") successor with different key exists.";
 
             EXPECT_EQ(*static_cast<int *>(succ->key), expected[i + 1u])
                 << "BST node (key " << key << ") successor with different key has correct key.";
