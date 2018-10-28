@@ -1,4 +1,5 @@
 GOOGLETEST_INCLUDE:=$(ROOT)/googletest/googletest/include
+GOOGLEMOCK_INCLUDE:=$(ROOT)/googletest/googlemock/include
 GOOGLETEST_LIB:=$(ROOT)/googletest/build/lib
 INCLUDE:=include
 
@@ -20,11 +21,11 @@ TESTS:=$(patsubst $(TEST_SRC)/%.cc, $(TEST_BIN)/%, $(wildcard $(TEST_SRC)/test_*
 test: $(TESTS)
 
 $(TEST_BIN)/%: $(TEST_OBJ)/%.o $(OBJS)
-	g++ -o $@ $^ $(CXXFLAGS) $(CPPFLAGS) -L$(GOOGLETEST_LIB) -lgtest -lgtest_main -pthread
+	g++ -o $@ $^ $(CXXFLAGS) $(CPPFLAGS) -L$(GOOGLETEST_LIB) -lgtest -lgmock -lgtest_main -pthread
 
 .PRECIOUS: $(TEST_OBJ)/%.o
 $(TEST_OBJ)/%.o: $(TEST_SRC)/%.cc
-	g++ -c -o $@ $< $(CXXFLAGS) $(CPPFLAGS) -I$(GOOGLETEST_INCLUDE)
+	g++ -c -o $@ $< $(CXXFLAGS) $(CPPFLAGS) -I$(GOOGLETEST_INCLUDE) -I$(GOOGLEMOCK_INCLUDE)
 
 .PRECIOUS: $(OBJ)/%.o
 $(OBJ)/%.o: $(SRC)/%.c
