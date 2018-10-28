@@ -1,5 +1,5 @@
 GOOGLETEST_INCLUDE:=$(ROOT)/googletest/googletest/include
-GOOGLETEST_LIB:=$(ROOT)/googletest/build/googlemock/gtest
+GOOGLETEST_LIB:=$(ROOT)/googletest/build/lib
 INCLUDE:=include
 
 OBJ:=obj
