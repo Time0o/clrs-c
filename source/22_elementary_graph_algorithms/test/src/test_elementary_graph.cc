@@ -213,7 +213,8 @@ TEST_P(UndirectedGraphTest, CanFindNeighbours)
 
             ASSERT_EQ(0, graph_neighbours(
                 graph, vertex, INGOING_AND_OUTGOING,
-                &neighbours_actual, &num_neighbours_actual));
+                &neighbours_actual, &num_neighbours_actual))
+                << "graph_neighbours call successful.";
 
             EXPECT_EQ(neighbours_expected.size(), num_neighbours_actual)
                 << "Vertex " << vertex << " has correct number of neighbours"
@@ -262,7 +263,8 @@ TEST_P(UndirectedGraphTest, CanFindIncidences)
 
             ASSERT_EQ(0, graph_incidences(
                 graph, vertex, INGOING_AND_OUTGOING,
-                &incidences_actual, &num_incidences_actual));
+                &incidences_actual, &num_incidences_actual))
+                << "graph_incidences call successful.";
 
             EXPECT_EQ(incidences_expected.size(), num_incidences_actual)
                 << "Vertex " << vertex << " has correct number of incidences"
