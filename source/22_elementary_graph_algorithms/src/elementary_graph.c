@@ -388,6 +388,10 @@ static int graph_neighbours_incidences(struct graph *g, size_t vertex,
                                        size_t **ret, size_t *num_ret,
                                        enum neighbours_incidences type)
 {
+    /* return if given vertex is invalid */
+    if (vertex >= g->num_vertices_alloced || !g->vertices_valid[vertex])
+        return -1;
+
     *ret = NULL;
     *num_ret = 0;
 
