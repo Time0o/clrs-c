@@ -194,7 +194,7 @@ TEST_P(UndirectedGraphTest, CanConstructUndirectedGraph)
     }
 }
 
-TEST_P(UndirectedGraphTest, CanFindNeighbours)
+TEST_P(UndirectedGraphTest, CanFindVertexNeighbours)
 {
     for (auto const &test_graph : undirected_test_graphs) {
         auto id = test_graph.first;
@@ -232,7 +232,7 @@ TEST_P(UndirectedGraphTest, CanFindNeighbours)
     }
 }
 
-TEST_P(UndirectedGraphTest, CanFindIncidences)
+TEST_P(UndirectedGraphTest, CanFindVertexIncidences)
 {
     for (auto const &test_graph : undirected_test_graphs) {
         auto id = test_graph.first;
@@ -278,6 +278,30 @@ TEST_P(UndirectedGraphTest, CanFindIncidences)
                 << " in '" << id << "'.";
 
             free(incidences_actual);
+        }
+    }
+}
+
+TEST_P(UndirectedGraphTest, CanDetermineVertexDegree)
+{
+    for (auto const &test_graph : undirected_test_graphs) {
+        auto id = test_graph.first;
+        auto boost_graph = test_graph.second.boost_graph;
+        auto graph = test_graph.second.graph;
+
+        auto vertices =
+            boost::make_iterator_range(boost::vertices(boost_graph));
+
+        for (auto vertex : vertices) {
+            auto degree_expected = boost::out_degree(vertex, boost_graph);
+
+            std::size_t degree_actual;
+            ASSERT_EQ(0, graph_degree(graph, vertex, &degree_actual))
+                << "graph_degree call successful.";
+
+            EXPECT_EQ(degree_expected, degree_actual)
+                << "Vertex " << vertex << " has correct degree"
+                << " in '" << id << "'.";
         }
     }
 }

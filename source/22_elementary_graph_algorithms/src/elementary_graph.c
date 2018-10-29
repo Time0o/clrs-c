@@ -452,3 +452,25 @@ int graph_incidences(struct graph *g, size_t vertex,
     return graph_neighbours_incidences(g, vertex, incidence,
                                        incidences, num_incidences, INCIDENCES);
 }
+
+int graph_degree(struct graph *g, size_t vertex, size_t *degree)
+{
+    /* return if given vertex is invalid */
+    if (vertex >= g->num_vertices_alloced || !g->vertices_valid[vertex])
+        return -1;
+
+    *degree = 0;
+
+    if (g->representation == ADJACENCY_LISTS) {
+        struct adjacency_list_node *tmp = g->adjacency_lists[vertex];
+
+        while (tmp) {
+            ++*degree;
+            tmp = tmp->next;
+        }
+    } else if (g->representation == ADJACENCY_MATRIX) {
+        // TODO
+    }
+
+    return 0;
+}
