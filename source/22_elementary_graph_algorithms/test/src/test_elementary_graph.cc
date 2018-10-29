@@ -211,8 +211,9 @@ TEST_P(UndirectedGraphTest, CanFindNeighbours)
             std::size_t *neighbours_actual;
             std::size_t num_neighbours_actual;
 
-            graph_neighbours(graph, vertex, INGOING_AND_OUTGOING,
-                             &neighbours_actual, &num_neighbours_actual);
+            ASSERT_EQ(0, graph_neighbours(
+                graph, vertex, INGOING_AND_OUTGOING,
+                &neighbours_actual, &num_neighbours_actual));
 
             EXPECT_EQ(neighbours_expected.size(), num_neighbours_actual)
                 << "Vertex " << vertex << " has correct number of neighbours"
@@ -259,8 +260,9 @@ TEST_P(UndirectedGraphTest, CanFindIncidences)
             std::size_t *incidences_actual;
             std::size_t num_incidences_actual;
 
-            graph_incidences(graph, vertex, INGOING_AND_OUTGOING,
-                             &incidences_actual, &num_incidences_actual);
+            ASSERT_EQ(0, graph_incidences(
+                graph, vertex, INGOING_AND_OUTGOING,
+                &incidences_actual, &num_incidences_actual));
 
             EXPECT_EQ(incidences_expected.size(), num_incidences_actual)
                 << "Vertex " << vertex << " has correct number of incidences"
