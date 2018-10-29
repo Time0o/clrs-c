@@ -247,10 +247,10 @@ TEST_P(UndirectedGraphTest, CanFindIncidences)
             std::vector<std::size_t> incidences_expected;
 
             for (auto e = p.first; e != p.second; ++e) {
-                size_t from = boost::source(*e, boost_graph);
-                size_t to = boost::target(*e, boost_graph);
+                std::size_t from = boost::source(*e, boost_graph);
+                std::size_t to = boost::target(*e, boost_graph);
 
-                size_t edge;
+                std::size_t edge;
                 ASSERT_EQ(0, graph_connector(graph, from, to, &edge))
                     << "Can determine incident edge in boost graph.";
 
