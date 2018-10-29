@@ -394,6 +394,8 @@ int graph_neighbours(struct graph *g, size_t vertex,
                          || incidence == INGOING_AND_OUTGOING;
 
     if (g->representation == ADJACENCY_LISTS) {
+        // TODO: no need to iterate over all edges for undirected graph
+
         for (size_t e = 0; e < g->num_edges_alloced; ++e) {
             if (!g->edges_valid[e])
                 continue;
