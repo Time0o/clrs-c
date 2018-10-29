@@ -229,3 +229,51 @@ TEST_P(UndirectedGraphTest, CanFindNeighbours)
         }
     }
 }
+
+TEST_P(UndirectedGraphTest, CanFindIncidences)
+{
+    for (auto const &test_graph : undirected_test_graphs) {
+        auto id = test_graph.first;
+        auto boost_graph = test_graph.second.boost_graph;
+        auto graph = test_graph.second.graph;
+
+        auto vertices =
+            boost::make_iterator_range(boost::vertices(boost_graph));
+
+        for (auto vertex : vertices) {
+            auto p = boost::out_edges(vertex, boost_graph);
+
+            std::vector<std::size_t> incidences_expected;
+
+            for (auto e = p.first; e != p.second; ++e) {
+                size_t from = boost::source(*e, boost_graph);
+                size_t to = boost::target(*e, boost_graph);
+
+                size_t edge;
+                ASSERT_EQ(0, graph_connector(graph, from, to, &edge))
+                    << "Can determine incident edge in boost graph.";
+
+                incidences_expected.push_back(edge);
+            }
+
+            std::size_t *incidences_actual;
+            std::size_t num_incidences_actual;
+
+            graph_incidences(graph, vertex, INGOING_AND_OUTGOING,
+                             &incidences_actual, &num_incidences_actual);
+
+            EXPECT_EQ(incidences_expected.size(), num_incidences_actual)
+                << "Vertex " << vertex << " has correct number of incidences"
+                << " in '" << id << "'.";
+
+            std::vector<std::size_t> tmp(
+                incidences_actual, incidences_actual + num_incidences_actual);
+
+            EXPECT_THAT(incidences_expected, UnorderedElementsAreArray(tmp))
+                << "Vertex " << vertex << " has correct incidences"
+                << " in '" << id << "'.";
+
+            free(incidences_actual);
+        }
+    }
+}

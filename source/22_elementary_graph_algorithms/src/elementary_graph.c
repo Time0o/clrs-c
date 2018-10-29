@@ -378,12 +378,18 @@ int graph_endpoints(struct graph *g, size_t edge, size_t *from, size_t *to)
     return 0;
 }
 
-int graph_neighbours(struct graph *g, size_t vertex,
-                     enum graph_incidence incidence,
-                     size_t **neighbours, size_t *num_neighbours)
+enum neighbours_incidences {
+    NEIGHBOURS,
+    INCIDENCES
+};
+
+static int graph_neighbours_incidences(struct graph *g, size_t vertex,
+                                       enum graph_incidence incidence,
+                                       size_t **ret, size_t *num_ret,
+                                       enum neighbours_incidences type)
 {
-    *neighbours = NULL;
-    *num_neighbours = 0;
+    *ret = NULL;
+    *num_ret = 0;
 
     int include_ingoing = g->directedness == UNDIRECTED
                         || incidence == INGOING
@@ -405,15 +411,19 @@ int graph_neighbours(struct graph *g, size_t vertex,
             if ((edge.from == vertex && include_outgoing)
                 || (edge.to == vertex && include_ingoing)) {
 
-                ++*num_neighbours;
+                ++*num_ret;
 
-                *neighbours = realloc(
-                    *neighbours, *num_neighbours * sizeof(size_t));
-                if (!*neighbours)
+                *ret = realloc(
+                    *ret, *num_ret * sizeof(size_t));
+                if (!*ret)
                     return -1;
 
-                (*neighbours)[*num_neighbours - 1] =
-                    edge.from == vertex ? edge.to : edge.from;
+                if (type == NEIGHBOURS) {
+                    (*ret)[*num_ret - 1] =
+                        edge.from == vertex ? edge.to : edge.from;
+                } else {
+                    (*ret)[*num_ret - 1] = e;
+                }
             }
         }
     } else if (g->representation == ADJACENCY_MATRIX) {
@@ -421,4 +431,20 @@ int graph_neighbours(struct graph *g, size_t vertex,
     }
 
     return 0;
+}
+
+int graph_neighbours(struct graph *g, size_t vertex,
+                     enum graph_incidence incidence,
+                     size_t **neighbours, size_t *num_neighbours)
+{
+    return graph_neighbours_incidences(g, vertex, incidence,
+                                       neighbours, num_neighbours, NEIGHBOURS);
+}
+
+int graph_incidences(struct graph *g, size_t vertex,
+                     enum graph_incidence incidence,
+                     size_t **incidences, size_t *num_incidences)
+{
+    return graph_neighbours_incidences(g, vertex, incidence,
+                                       incidences, num_incidences, INCIDENCES);
 }
