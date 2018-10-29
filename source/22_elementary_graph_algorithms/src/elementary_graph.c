@@ -377,3 +377,46 @@ int graph_endpoints(struct graph *g, size_t edge, size_t *from, size_t *to)
 
     return 0;
 }
+
+int graph_neighbours(struct graph *g, size_t vertex,
+                     enum graph_incidence incidence,
+                     size_t **neighbours, size_t *num_neighbours)
+{
+    *neighbours = NULL;
+    *num_neighbours = 0;
+
+    int include_ingoing = g->directedness == UNDIRECTED
+                        || incidence == INGOING
+                        || incidence == INGOING_AND_OUTGOING;
+
+    int include_outgoing = g->directedness == UNDIRECTED
+                         || incidence == OUTGOING
+                         || incidence == INGOING_AND_OUTGOING;
+
+    if (g->representation == ADJACENCY_LISTS) {
+        for (size_t e = 0; e < g->num_edges_alloced; ++e) {
+            if (!g->edges_valid[e])
+                continue;
+
+            struct graph_edge_descriptor edge = g->edge_descriptors[e];
+
+            if ((edge.from == vertex && include_outgoing)
+                || (edge.to == vertex && include_ingoing)) {
+
+                ++*num_neighbours;
+
+                *neighbours = realloc(
+                    *neighbours, *num_neighbours * sizeof(size_t));
+                if (!*neighbours)
+                    return -1;
+
+                (*neighbours)[*num_neighbours - 1] =
+                    edge.from == vertex ? edge.to : edge.from;
+            }
+        }
+    } else if (g->representation == ADJACENCY_MATRIX) {
+        // TODO
+    }
+
+    return 0;
+}

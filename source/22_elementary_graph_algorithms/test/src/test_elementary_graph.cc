@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstddef>
+#include <cstdlib>
 #include <map>
 #include <string>
 #include <utility>
@@ -18,6 +19,7 @@ extern "C" {
 using ::testing::Combine;
 using ::testing::TestWithParam;
 using ::testing::UnorderedElementsAre;
+using ::testing::UnorderedElementsAreArray;
 using ::testing::Values;
 
 
@@ -146,6 +148,9 @@ private:
     }
 };
 
+INSTANTIATE_TEST_CASE_P(RepresentationTypes, UndirectedGraphTest,
+                        Values(ADJACENCY_LISTS)); // TODO
+
 TEST_P(UndirectedGraphTest, CanConstructUndirectedGraph)
 {
     for (auto const &test_graph : undirected_test_graphs) {
@@ -189,5 +194,38 @@ TEST_P(UndirectedGraphTest, CanConstructUndirectedGraph)
     }
 }
 
-INSTANTIATE_TEST_CASE_P(RepresentationTypes, UndirectedGraphTest,
-                        Values(ADJACENCY_LISTS)); // TODO
+TEST_P(UndirectedGraphTest, CanFindNeighbours)
+{
+    for (auto const &test_graph : undirected_test_graphs) {
+        auto id = test_graph.first;
+        auto boost_graph = test_graph.second.boost_graph;
+        auto graph = test_graph.second.graph;
+
+        auto vertices =
+            boost::make_iterator_range(boost::vertices(boost_graph));
+
+        for (auto vertex : vertices) {
+            auto p = boost::adjacent_vertices(vertex, boost_graph);
+            std::vector<std::size_t> neighbours_expected(p.first, p.second);
+
+            std::size_t *neighbours_actual;
+            std::size_t num_neighbours_actual;
+
+            graph_neighbours(graph, vertex, INGOING_AND_OUTGOING,
+                             &neighbours_actual, &num_neighbours_actual);
+
+            EXPECT_EQ(neighbours_expected.size(), num_neighbours_actual)
+                << "Vertex " << vertex << " has correct number of neighbours"
+                << " in '" << id << "'.";
+
+            std::vector<std::size_t> tmp(
+                neighbours_actual, neighbours_actual + num_neighbours_actual);
+
+            EXPECT_THAT(neighbours_expected, UnorderedElementsAreArray(tmp))
+                << "Vertex " << vertex << " has correct neighbours"
+                << " in '" << id << "'.";
+
+            free(neighbours_actual);
+        }
+    }
+}
