@@ -4,7 +4,7 @@
 #include "elementary_graph.h"
 
 
-/* data structures */
+/* basic data structures */
 
 struct adjacency_list_node {
     size_t to, edge;
@@ -137,7 +137,7 @@ struct graph * graph_create(size_t num_vertices,
 void graph_free(struct graph *g)
 {
     if (g->representation == ADJACENCY_LISTS) {
-        for (size_t v = 0; v < g->num_vertices; ++v) {
+        for (size_t v = 0; v < g->num_vertices_alloced; ++v) {
             if (!g->vertices_valid[v])
                 continue;
 
@@ -197,6 +197,79 @@ int graph_add_vertex(struct graph *g, size_t *vertex)
 
     if (vertex)
         *vertex = g->num_vertices - 1;
+
+    return 0;
+}
+
+int graph_remove_vertex(struct graph *g, size_t vertex)
+{
+    /* return if given vertex is invalid */
+    if (vertex >= g->num_vertices_alloced || !g->vertices_valid[vertex])
+        return -1;
+
+    /* find and remove in- and outgoing edges */
+    size_t *incidences, num_incidences;
+
+#ifndef NDEBUG
+    int err = graph_incidences(g, vertex, INGOING_AND_OUTGOING,
+                               &incidences, &num_incidences);
+    assert(err == 0);
+#else
+    graph_incidences(g, vertex, INGOING_AND_OUTGOING,
+                     &incidences, &num_incidences);
+#endif
+
+    for (size_t i = 0; i < num_incidences; ++i) {
+#ifndef NDEBUG
+        int err = graph_remove_edge(g, incidences[i]);
+        assert(err == 0);
+#else
+        graph_remove_edge(g, incidences[i]);
+#endif
+    }
+
+    free(incidences);
+
+    if (g->representation == ADJACENCY_LISTS) {
+        /* remove adjacency list */
+        struct adjacency_list_node *tmp = g->adjacency_lists[vertex];
+        struct adjacency_list_node *next;
+
+        while (tmp) {
+            next = tmp->next;
+            free(tmp);
+            tmp = next;
+        }
+
+    } else if (g->representation == ADJACENCY_MATRIX) {
+        // TODO
+    }
+
+    /* mark vertex as invalid */
+    g->vertices_valid[vertex] = 0;
+
+    /* potentially resize vertex valid flag array */
+    if (vertex == g->num_vertices_alloced - 1) {
+        size_t reduce = 1;
+        if (g->num_vertices_alloced > 1) {
+            for (size_t i = g->num_vertices_alloced - 2; i > 0; --i) {
+                if (g->vertices_valid[i])
+                    break;
+
+                ++reduce;
+            }
+        }
+
+        g->num_vertices_alloced -= reduce;
+
+        char *vertices_valid = realloc(
+            g->vertices_valid, g->num_vertices_alloced);
+        if (vertices_valid)
+            g->vertices_valid = vertices_valid;
+    }
+
+    /* reduce vertex counter */
+    --g->num_vertices;
 
     return 0;
 }
@@ -318,6 +391,88 @@ int graph_add_edge(struct graph *g, size_t from, size_t to, size_t *edge)
 
     ++g->num_edges;
     ++g->num_edges_alloced;
+
+    return 0;
+}
+
+
+static int graph_remove_adjacency_list_node(struct graph *g,
+                                            size_t from, size_t to)
+{
+    struct adjacency_list_node *tmp, *last;
+
+    tmp = g->adjacency_lists[from];
+    if (!tmp)
+      return 0;
+
+    last = NULL;
+
+    while (tmp) {
+        if (tmp->to == to) {
+            if (last)
+                last->next = tmp->next;
+            else
+                g->adjacency_lists[from] = tmp->next;
+
+            free(tmp);
+            return 0;
+        }
+
+        last = tmp;
+        tmp = tmp->next;
+    }
+
+    return -1;
+}
+
+int graph_remove_edge(struct graph *g, size_t edge)
+{
+    /* return if given edge is invalid */
+    if (edge >= g->num_edges_alloced || !g->edges_valid[edge])
+        return -1;
+
+    struct graph_edge_descriptor e = g->edge_descriptors[edge];
+
+    if (g->representation == ADJACENCY_LISTS) {
+        assert(graph_remove_adjacency_list_node(g, e.from, e.to) == 0);
+
+        if (g->directedness == UNDIRECTED)
+            assert(graph_remove_adjacency_list_node(g, e.to, e.from) == 0);
+
+    } else if (g->representation == ADJACENCY_MATRIX) {
+        // TODO
+    }
+
+    /* mark edge as invalid */
+    g->edges_valid[edge] = 0;
+
+    /* potentially resize edge valid flag array */
+    if (edge == g->num_edges_alloced - 1) {
+        size_t reduce = 1;
+        if (g->num_edges_alloced > 1) {
+            for (size_t i = g->num_edges_alloced - 2; i > 0; --i) {
+                if (g->edges_valid[i])
+                    break;
+
+                ++reduce;
+            }
+        }
+
+        g->num_edges_alloced -= reduce;
+
+        char *edges_valid = realloc(g->edges_valid, g->num_edges_alloced);
+        if (edges_valid)
+            g->edges_valid = edges_valid;
+
+        size_t tmp = g->num_edges_alloced * sizeof(*g->edge_descriptors);
+        struct graph_edge_descriptor *edge_descriptors = realloc(
+            g->edge_descriptors, tmp);
+        if (edge_descriptors)
+            g->edge_descriptors = edge_descriptors;
+    }
+
+    /* reduce edge counter */
+    --g->num_edges;
 
     return 0;
 }
@@ -477,4 +632,118 @@ int graph_degree(struct graph *g, size_t vertex, size_t *degree)
     }
 
     return 0;
+}
+
+
+/* vertex iteration */
+
+struct graph_vertex_iter
+{
+    struct graph *graph;
+    size_t next;
+};
+
+struct graph_vertex_iter * graph_vertex_iter_create(struct graph *g, size_t vertex)
+{
+    if (vertex > g->num_vertices_alloced)
+        return NULL;
+
+    size_t next = vertex;
+    while (next < g->num_vertices_alloced) {
+        if (g->vertices_valid[next])
+            break;
+
+        ++next;
+    }
+
+    struct graph_vertex_iter *ret = malloc(sizeof(*ret));
+    ret->graph = g;
+    ret->next = next;
+
+    return ret;
+}
+
+void graph_vertex_iter_free(struct graph_vertex_iter *it)
+{
+    free(it);
+}
+
+int graph_vertex_iter_has_next(struct graph_vertex_iter const *it)
+{
+    return it->next < it->graph->num_vertices_alloced;
+}
+
+size_t graph_vertex_iter_next(struct graph_vertex_iter *it)
+{
+    size_t ret = it->next;
+
+    if (graph_vertex_iter_has_next(it)) {
+        size_t next = ret + 1;
+        while (next < it->graph->num_vertices_alloced) {
+            if (it->graph->vertices_valid[next])
+                break;
+
+            ++next;
+        }
+        it->next = next;
+    }
+
+    return ret;
+}
+
+
+/* edge iteration */
+
+struct graph_edge_iter
+{
+    struct graph *graph;
+    size_t next;
+};
+
+struct graph_edge_iter * graph_edge_iter_create(struct graph *g, size_t edge)
+{
+    if (edge > g->num_edges_alloced)
+        return NULL;
+
+    size_t next = edge;
+    while (next < g->num_edges_alloced) {
+        if (g->edges_valid[next])
+            break;
+
+        ++next;
+    }
+
+    struct graph_edge_iter *ret = malloc(sizeof(*ret));
+    ret->graph = g;
+    ret->next = next;
+
+    return ret;
+}
+
+void graph_edge_iter_free(struct graph_edge_iter *it)
+{
+    free(it);
+}
+
+int graph_edge_iter_has_next(struct graph_edge_iter const *it)
+{
+    return it->next < it->graph->num_edges_alloced;
+}
+
+size_t graph_edge_iter_next(struct graph_edge_iter *it)
+{
+    size_t ret = it->next;
+
+    if (graph_edge_iter_has_next(it)) {
+        size_t next = ret + 1;
+        while (next < it->graph->num_edges_alloced) {
+            if (it->graph->edges_valid[next])
+                break;
+
+            ++next;
+        }
+        it->next = next;
+    }
+
+    return ret;
 }

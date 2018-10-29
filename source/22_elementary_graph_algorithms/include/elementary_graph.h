@@ -62,4 +62,26 @@ int graph_incidences(struct graph *g, size_t vertex,
 
 int graph_degree(struct graph *g, size_t vertex, size_t *degree);
 
+
+/* vertex iteration */
+
+struct graph_vertex_iter;
+
+struct graph_vertex_iter * graph_vertex_iter_create(struct graph *g, size_t vertex);
+void graph_vertex_iter_free(struct graph_vertex_iter *it);
+
+int graph_vertex_iter_has_next(struct graph_vertex_iter const *it);
+size_t graph_vertex_iter_next(struct graph_vertex_iter *it);
+
+
+/* edge iteration */
+
+struct graph_edge_iter;
+
+struct graph_edge_iter * graph_edge_iter_create(struct graph *g, size_t edge);
+void graph_edge_iter_free(struct graph_edge_iter *it);
+
+int graph_edge_iter_has_next(struct graph_edge_iter const *it);
+size_t graph_edge_iter_next(struct graph_edge_iter *it);
+
 #endif

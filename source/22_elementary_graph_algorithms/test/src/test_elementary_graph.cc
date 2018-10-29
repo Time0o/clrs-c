@@ -8,6 +8,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
+#include <boost/graph/isomorphism.hpp>
 #include <boost/range/iterator_range_core.hpp>
 
 #include "gmock/gmock.h"
@@ -35,7 +36,7 @@ protected:
         UndirectedTestGraph(UndirectedGraph const &boost_graph,
                             graph_representation repr)
             : boost_graph(boost_graph),
-              graph(construct_from_boost(boost_graph, repr)) {}
+              graph(boost_graph_to_graph(boost_graph, repr)) {}
 
         UndirectedGraph boost_graph;
         struct graph *graph;
@@ -61,8 +62,7 @@ protected:
 
     std::map<std::string, UndirectedTestGraph> undirected_test_graphs;
 
-private:
-    static struct graph * construct_from_boost(
+    static struct graph * boost_graph_to_graph(
         UndirectedGraph const &boost_graph, enum graph_representation repr) {
 
         struct graph *g = graph_create(
@@ -81,6 +81,43 @@ private:
         }
 
         return g;
+    }
+
+    static UndirectedGraph graph_to_boost_graph(struct graph *g) {
+        UndirectedGraph boost_graph;
+
+        // construct vertex index mapping
+        std::map<std::size_t, std::size_t> vertex_map;
+
+        struct graph_vertex_iter *vit = graph_vertex_iter_create(g, 0);
+
+        std::size_t vertex, vertex_boost;
+
+        vertex_boost = 0;
+        while (graph_vertex_iter_has_next(vit)) {
+            vertex = graph_vertex_iter_next(vit);
+            vertex_map[vertex] = vertex_boost++;
+        }
+
+        graph_vertex_iter_free(vit);
+
+        for (auto i = 0u; i < vertex_map.size(); ++i)
+            boost::add_vertex(boost_graph);
+
+        // construct boost graph
+        struct graph_edge_iter *eit = graph_edge_iter_create(g, 0);
+
+        std::size_t edge, from, to;
+        while (graph_edge_iter_has_next(eit)) {
+            edge = graph_edge_iter_next(eit);
+            assert(graph_endpoints(g, edge, &from, &to) == 0);
+
+            boost::add_edge(vertex_map[from], vertex_map[to], boost_graph);
+        }
+
+        graph_edge_iter_free(eit);
+
+        return boost_graph;
     }
 
     static UndirectedGraph construct_bull_graph() {
@@ -164,6 +201,49 @@ TEST_P(UndirectedGraphTest, CanConstructUndirectedGraph)
             assert_edge(to, from);
         }
     }
+}
+
+TEST_P(UndirectedGraphTest, CanRemoveVertices)
+{
+    for (auto const &test_graph : undirected_test_graphs) {
+        auto id = test_graph.first;
+        auto boost_graph = test_graph.second.boost_graph;
+
+        std::size_t num_vertices = boost::num_vertices(boost_graph);
+
+        for (std::size_t v = 0; v < num_vertices; ++v) {
+            auto boost_graph_copy = boost_graph;
+            auto graph = boost_graph_to_graph(boost_graph_copy, GetParam());
+
+            boost::clear_vertex(v, boost_graph_copy);
+            boost::remove_vertex(v, boost_graph_copy);
+
+            ASSERT_EQ(0, graph_remove_vertex(graph, v))
+                << "graph_remove_vertex call successful.";
+
+            EXPECT_EQ(boost::num_vertices(boost_graph_copy),
+                      graph_num_vertices(graph))
+                << "Reduced graph after removal of vertex " << v
+                << " of '" << id << "' has correct number of vertices.";
+
+            EXPECT_EQ(boost::num_edges(boost_graph_copy),
+                      graph_num_edges(graph))
+                << "Reduced graph after removal of vertex " << v
+                << " of '" << id << "' has correct number of edges.";
+
+            EXPECT_TRUE(boost::isomorphism(
+                boost_graph_copy, graph_to_boost_graph(graph)))
+                << "Reduced graph after removal of vertex " << v
+                << " of '" << id << "' correct.";
+
+            graph_free(graph);
+        }
+    }
+}
+
+TEST_P(UndirectedGraphTest, DISABLED_CanRemoveEdges)
+{
+    // TODO
 }
 
 TEST_P(UndirectedGraphTest, CanFindVertexNeighbours)
@@ -275,5 +355,81 @@ TEST_P(UndirectedGraphTest, CanDetermineVertexDegree)
                 << "Vertex " << vertex << " has correct degree"
                 << " in '" << id << "'.";
         }
+    }
+}
+
+TEST_P(UndirectedGraphTest, CanIterateVertices)
+{
+    for (auto const &test_graph : undirected_test_graphs) {
+        auto id = test_graph.first;
+        auto graph = test_graph.second.graph;
+
+        std::size_t num_vertices = graph_num_vertices(graph);
+
+        // expected vertices after removal of first, middle and last one
+        std::vector<std::size_t> expected;
+
+        for (std::size_t i = 0; i < num_vertices; ++i) {
+            if (i == 0 || i == num_vertices / 2 || i == num_vertices - 1)
+                continue;
+
+            expected.push_back(i);
+        }
+
+        // remove nodes
+        graph_remove_vertex(graph, 0);
+        graph_remove_vertex(graph, num_vertices / 2);
+        graph_remove_vertex(graph, num_vertices - 1);
+
+        // verify vertices returned by iterator
+        struct graph_vertex_iter *it = graph_vertex_iter_create(graph, 0);
+
+        for (std::size_t i = 0; i < expected.size(); ++i) {
+            ASSERT_TRUE(graph_vertex_iter_has_next(it))
+                << "Graph '" << id << "' iterator has next vertex.";
+
+            ASSERT_EQ(expected[i], graph_vertex_iter_next(it))
+                << "Graph '" << id << "' iterator returns correct vertex.";
+        }
+
+        graph_vertex_iter_free(it);
+    }
+}
+
+TEST_P(UndirectedGraphTest, CanIterateEdges)
+{
+    for (auto const &test_graph : undirected_test_graphs) {
+        auto id = test_graph.first;
+        auto graph = test_graph.second.graph;
+
+        std::size_t num_edges = graph_num_edges(graph);
+
+        // expected vertices after removal of first, middle and last one
+        std::vector<std::size_t> expected;
+
+        for (std::size_t i = 0; i < num_edges; ++i) {
+            if (i == 0 || i == num_edges / 2 || i == num_edges - 1)
+                continue;
+
+            expected.push_back(i);
+        }
+
+        // remove nodes
+        graph_remove_edge(graph, 0);
+        graph_remove_edge(graph, num_edges / 2);
+        graph_remove_edge(graph, num_edges - 1);
+
+        // verify vertices returned by iterator
+        struct graph_edge_iter *it = graph_edge_iter_create(graph, 0);
+
+        for (std::size_t i = 0; i < expected.size(); ++i) {
+            ASSERT_TRUE(graph_edge_iter_has_next(it))
+                << "Graph '" << id << "' iterator has next edge.";
+
+            ASSERT_EQ(expected[i], graph_edge_iter_next(it))
+                << "Graph '" << id << "' iterator returns correct edge.";
+        }
+
+        graph_edge_iter_free(it);
     }
 }
