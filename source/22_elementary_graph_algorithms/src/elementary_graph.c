@@ -210,6 +210,10 @@ int graph_add_edge(struct graph *g, size_t from, size_t to, size_t *edge)
     if (to >= g->num_vertices_alloced || !g->vertices_valid[to])
         return -1;
 
+    /* disallow self-loops in undirected graphs */
+    if (g->directedness == UNDIRECTED && from == to)
+        return -1;
+
     /* resize edge descriptor valid flag array */
     char *edges_valid = realloc(g->edges_valid, g->num_edges_alloced + 1);
     if (!edges_valid)

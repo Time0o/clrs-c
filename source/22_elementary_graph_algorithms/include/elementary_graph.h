@@ -22,7 +22,7 @@ enum graph_incidence {
 
 /* opaque data structure */
 
-struct graph; // include self loops?
+struct graph;
 
 
 /* creation and destruction*/
