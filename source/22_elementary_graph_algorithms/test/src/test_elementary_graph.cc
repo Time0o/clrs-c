@@ -86,17 +86,11 @@ private:
     static UndirectedGraph construct_bull_graph() {
         UndirectedGraph bull_graph;
 
-        auto v1 = boost::add_vertex(bull_graph);
-        auto v2 = boost::add_vertex(bull_graph);
-        auto v3 = boost::add_vertex(bull_graph);
-        auto v4 = boost::add_vertex(bull_graph);
-        auto v5 = boost::add_vertex(bull_graph);
-
-        boost::add_edge(v1, v3, bull_graph);
-        boost::add_edge(v2, v4, bull_graph);
-        boost::add_edge(v3, v4, bull_graph);
-        boost::add_edge(v3, v5, bull_graph);
-        boost::add_edge(v4, v5, bull_graph);
+        boost::add_edge(0, 2, bull_graph);
+        boost::add_edge(1, 3, bull_graph);
+        boost::add_edge(2, 3, bull_graph);
+        boost::add_edge(2, 4, bull_graph);
+        boost::add_edge(3, 4, bull_graph);
 
         return bull_graph;
     }
@@ -104,19 +98,10 @@ private:
     static UndirectedGraph construct_wagner_graph() {
         UndirectedGraph wagner_graph;
 
-        auto v1 = boost::add_vertex(wagner_graph);
-        auto v2 = boost::add_vertex(wagner_graph);
-        auto v3 = boost::add_vertex(wagner_graph);
-        auto v4 = boost::add_vertex(wagner_graph);
-        auto v5 = boost::add_vertex(wagner_graph);
-        auto v6 = boost::add_vertex(wagner_graph);
-        auto v7 = boost::add_vertex(wagner_graph);
-        auto v8 = boost::add_vertex(wagner_graph);
-
-        boost::add_edge(v1, v5, wagner_graph);
-        boost::add_edge(v2, v6, wagner_graph);
-        boost::add_edge(v3, v7, wagner_graph);
-        boost::add_edge(v4, v8, wagner_graph);
+        boost::add_edge(0, 4, wagner_graph);
+        boost::add_edge(1, 5, wagner_graph);
+        boost::add_edge(2, 6, wagner_graph);
+        boost::add_edge(3, 7, wagner_graph);
 
         return wagner_graph;
     }
@@ -124,25 +109,12 @@ private:
     static UndirectedGraph construct_bidakis_cube() {
         UndirectedGraph bidakis_cube;
 
-        auto v1 = boost::add_vertex(bidakis_cube);
-        auto v2 = boost::add_vertex(bidakis_cube);
-        auto v3 = boost::add_vertex(bidakis_cube);
-        auto v4 = boost::add_vertex(bidakis_cube);
-        auto v5 = boost::add_vertex(bidakis_cube);
-        auto v6 = boost::add_vertex(bidakis_cube);
-        auto v7 = boost::add_vertex(bidakis_cube);
-        auto v8 = boost::add_vertex(bidakis_cube);
-        auto v9 = boost::add_vertex(bidakis_cube);
-        auto v10 = boost::add_vertex(bidakis_cube);
-        auto v11 = boost::add_vertex(bidakis_cube);
-        auto v12 = boost::add_vertex(bidakis_cube);
-
-        boost::add_edge(v1, v7, bidakis_cube);
-        boost::add_edge(v2, v6, bidakis_cube);
-        boost::add_edge(v3, v11, bidakis_cube);
-        boost::add_edge(v4, v10, bidakis_cube);
-        boost::add_edge(v5, v9, bidakis_cube);
-        boost::add_edge(v8, v12, bidakis_cube);
+        boost::add_edge(0, 6, bidakis_cube);
+        boost::add_edge(1, 5, bidakis_cube);
+        boost::add_edge(2, 10, bidakis_cube);
+        boost::add_edge(3, 9, bidakis_cube);
+        boost::add_edge(4, 8, bidakis_cube);
+        boost::add_edge(7, 11, bidakis_cube);
 
         return bidakis_cube;
     }
